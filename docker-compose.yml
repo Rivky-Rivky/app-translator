@@ -1,0 +1,49 @@
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+        POSTGRES_DB: translations
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+    volumes:
+       - app-translator-volume:/var/lib/postgresql/data  # Volume
+       - /db/init.sql:/docker-entrypoint-initdb.d/init.sql # Bind Mount
+    networks:
+      - app-translator-network
+
+
+  backend:
+    build: ./backend
+    environment: 
+      DATABASE_URL: postgres://postgres:postgres@db:5432/translations
+    ports:
+      - "3001:3001"
+    depends_on:
+      
+      - translator
+    networks:
+      - app-translator-network
+
+
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    networks:
+      - app-translator-network
+  
+  translator:
+    image: libretranslate/libretranslate
+    ports:
+      - "5000:5000"
+
+
+networks:
+  app-translator-network:
+
+volumes:
+  app-translator-volume:
